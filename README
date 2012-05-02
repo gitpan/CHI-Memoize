@@ -1,0 +1,191 @@
+NAME
+    CHI::Memoize - Make functions faster with memoization, via CHI
+
+VERSION
+    version 0.01
+
+SYNOPSIS
+        use CHI::Memoize qw(:all);
+
+        # Straight memoization in memory
+        memoize('func');
+        memoize('Some::Package::func');
+  
+        # Memoize an anonymous function
+        $anon = memoize($anon);
+
+        # Memoize based on the second and third argument to func
+        memoize('func', key => sub { [$_[1], $_[2]] });
+    
+        # Expire after one hour
+        memoize('func', expires_in => '1h');
+    
+        # Store a maximum of 10 results with LRU discard
+        memoize('func', max_size => 10);
+    
+        # Store in memcached instead of memory
+        memoize('func', driver => 'Memcached', servers => ["127.0.0.1:11211"]);
+
+        # See what's been memoized for a function
+        my @keys = memoized('func')->cache->get_keys;
+
+        # Clear memoize results for a function
+        my @keys = memoized('func')->cache->clear;
+
+        # Use an explicit cache instead of autocreating one
+        my $cache = CHI->new(driver => 'Memcached', servers => ["127.0.0.1:11211"]);
+        memoize('func', cache => $cache);
+
+        # Unmemoize function, restoring it to its original state
+        unmemoize('func');
+
+DESCRIPTION
+    "`Memoizing' a function makes it faster by trading space for time. It
+    does this by caching the return values of the function in a table. If
+    you call the function again with the same arguments, `memoize' jumps in
+    and gives you the value out of the table, instead of letting the
+    function compute the value all over again." -- quoted from the original
+    Memoize
+
+    `CHI::Memoize' provides the same facility as Memoize, but backed by CHI.
+    This means, among other things, that you can
+
+    *   specify expiration times (expires_in) and conditions (expire_if)
+
+    *   memoize to different backends, e.g. File, Memcached, DBI, or to
+        multilevel caches
+
+    *   handle arbitrarily complex function arguments (via CHI key
+        serialization)
+
+  FUNCTIONS
+    All of these are importable; only `memoize' is imported by default. `use
+    Memoize qw(:all)' will import them all.
+
+    memoize ($func, option => value, ...)
+        Creates a new function wrapped around *$func* that caches results
+        based on passed arguments.
+
+        *$func* can be a function name (with or without a package prefix) or
+        an anonymous function. In the former case, the name is rebound to
+        the new function. In either case a code ref to the new wrapper
+        function is returned.
+
+        By default, the cache key is formed from combining the full function
+        name, the calling context ("L" or "S"), and all the function
+        arguments with canonical JSON (sorted hash keys). e.g. these
+        arguments will generate the same cache key:
+
+            memoized_function(a => 5, b => 6, c => { d => 7, e => 8 });
+            memoized_function(b => 6, c => { e => 8, d => 7 }, a => 5);
+
+        but these will use a different cache key because of context:
+
+             my $scalar = memoized_function(5);
+             my @list = memoized_function(5);
+
+        By default, the cache namespace is formed from the full function
+        name or the stringified code reference. This allows you to
+        introspect and clear the memoized results for a particular function.
+
+        `memoize' throws an error if *$func* is already memoized.
+
+    memoized ($func)
+        Returns a CHI::Memoize::Info object if *$func* has been memoized, or
+        undef if it has not been memoized.
+
+            # The CHI cache where memoize results are stored
+            #
+            my $cache = memoized($func)->cache;
+            $cache->clear;
+
+            # Code references to the original function and to the new wrapped function
+            #
+            my $orig = memoized($func)->orig;
+            my $wrapped = memoized($func)->wrapped;
+
+    unmemoize ($func)
+        Removes the wrapper around *$func*, restoring it to its original
+        unmemoized state. Also clears the memoize cache if possible (not
+        supported by all drivers, particularly memcached). Throws an error
+        if *$func* has not been memoized.
+
+  OPTIONS
+    The following options can be passed to memoize.
+
+    key Specifies a code reference that takes arguments passed to the
+        function and returns a cache key. The key may be returned as a list,
+        list reference or hash reference; it will automatically be
+        serialized to JSON in canonical mode (sorted hash keys). e.g. this
+        uses the second and third argument to the function as a key:
+
+            memoize('func', key => sub { @_[1..2] });
+
+        Regardless of what key you specify, it will automatically be
+        prefixed with the full function name and the calling context ("L" or
+        "S").
+
+    set and get options
+        You can pass any of CHI's set options (e.g. expires_in,
+        expires_variance) or get options (e.g. expire_if, busy_lock). e.g.
+
+            # Expire after one hour
+            memoize('func', expires_in => '1h');
+    
+            # Expire when a particular condition occurs
+            memoize('func', expire_if => sub { ... });
+
+    cache options
+        Any remaining options will be passed to the CHI constructor to
+        generate the cache:
+
+            # Store in memcached instead of memory
+            memoize('func', driver => 'Memcached', servers => ["127.0.0.1:11211"]);
+
+        Unless specified, the namespace is generated from the full name of
+        the function being memoized.
+
+        You can also specify an existing cache object:
+
+            # Store in memcached instead of memory
+            my $cache = CHI->new(driver => 'Memcached', servers => ["127.0.0.1:11211"]);
+            memoize('func', cache => $cache);
+
+RELATED MODULES
+    A number of modules address a subset of the problems addressed by this
+    module, including:
+
+    *   Memoize::Expire - pluggable expiration of memoized values
+
+    *   Memoize::ExpireLRU - provides LRU expiration for Memoize
+
+    *   Memoize::Memcached - use a memcached cache to memoize functions
+
+SUPPORT
+    Questions and feedback are welcome, and should be directed to the
+    perl-cache mailing list:
+
+        http://groups.google.com/group/perl-cache-discuss
+
+    Bugs and feature requests will be tracked at RT:
+
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI-Memoize
+        bug-chi-memoize@rt.cpan.org
+
+    The latest source code can be browsed and fetched at:
+
+        http://github.com/jonswar/perl-chi-memoize
+        git clone git://github.com/jonswar/perl-chi-memoize.git
+
+SEE ALSO
+    CHI, Memoize
+
+AUTHOR
+    Jonathan Swartz <swartz@pobox.com>
+
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2011 by Jonathan Swartz.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
+
