@@ -2,20 +2,23 @@ NAME
     CHI::Memoize - Make functions faster with memoization, via CHI
 
 VERSION
-    version 0.01
+    version 0.02
 
 SYNOPSIS
         use CHI::Memoize qw(:all);
-
+    
         # Straight memoization in memory
         memoize('func');
         memoize('Some::Package::func');
-  
+    
         # Memoize an anonymous function
         $anon = memoize($anon);
-
+    
         # Memoize based on the second and third argument to func
-        memoize('func', key => sub { [$_[1], $_[2]] });
+        memoize('func', key => sub { $_[1], $_[2] });
+    
+        # Memoize only in certain cases
+        memoize('func', key => sub { $_[0] eq 'variable' ? NO_MEMOIZE : @_ });
     
         # Expire after one hour
         memoize('func', expires_in => '1h');
@@ -23,19 +26,22 @@ SYNOPSIS
         # Store a maximum of 10 results with LRU discard
         memoize('func', max_size => 10);
     
+        # Store raw references instead of serializing/deserializing (faster, more risky)
+        memoize('func', driver => 'RawMemory');
+    
         # Store in memcached instead of memory
         memoize('func', driver => 'Memcached', servers => ["127.0.0.1:11211"]);
-
+    
         # See what's been memoized for a function
         my @keys = memoized('func')->cache->get_keys;
-
+    
         # Clear memoize results for a function
         my @keys = memoized('func')->cache->clear;
-
+    
         # Use an explicit cache instead of autocreating one
         my $cache = CHI->new(driver => 'Memcached', servers => ["127.0.0.1:11211"]);
         memoize('func', cache => $cache);
-
+    
         # Unmemoize function, restoring it to its original state
         unmemoize('func');
 
@@ -60,7 +66,8 @@ DESCRIPTION
 
   FUNCTIONS
     All of these are importable; only `memoize' is imported by default. `use
-    Memoize qw(:all)' will import them all.
+    Memoize qw(:all)' will import them all as well as the `NO_MEMOIZE'
+    constant.
 
     memoize ($func, option => value, ...)
         Creates a new function wrapped around *$func* that caches results
@@ -125,6 +132,11 @@ DESCRIPTION
         prefixed with the full function name and the calling context ("L" or
         "S").
 
+        If the function returns `CHI::Memoize::NO_MEMOIZE' (or `NO_MEMOIZE'
+        if you import it), this call won't be memoized. This is useful if
+        you have a cache of limited size or if you know certain arguments
+        will yield nondeterministic results.
+
     set and get options
         You can pass any of CHI's set options (e.g. expires_in,
         expires_variance) or get options (e.g. expire_if, busy_lock). e.g.
@@ -150,6 +162,58 @@ DESCRIPTION
             # Store in memcached instead of memory
             my $cache = CHI->new(driver => 'Memcached', servers => ["127.0.0.1:11211"]);
             memoize('func', cache => $cache);
+
+CLONED VS RAW REFERENCES
+    By default `CHI', and thus `CHI::Memoize', returns a deep clone of the
+    stored value. e.g. in this code
+
+        # func returns a list reference
+        memoize('func');
+        my $ref1 = func();
+        my $ref2 = func();
+
+    `$ref1' and `$ref2' will be references to two completely different lists
+    which have the same contained values. More specifically, the value is
+    serialized by Storable on `set' and deserialized (hence cloned) on
+    `get'.
+
+    The advantage here is that it is safe to modify a reference returned
+    from a memoized function; your modifications won't affect the cached
+    value.
+
+        my $ref1 = func();
+        push(@$ref1, 3, 4, 5);
+        my $ref2 = func();
+        # $ref2 does not have 3, 4, 5
+
+    The disadvantage is that it takes extra time to serialize and
+    deserialize the value, and that some values like code references may be
+    more difficult to store. And cloning may not be what you want at all,
+    e.g. if you are returning objects.
+
+    Alternatively you can use CHI::Driver::RawMemory, which will store raw
+    references the way `Memoize' does. Now, however, any modifications to
+    the contents of a returned reference will affect the cached value.
+
+        memoize('func', driver => 'RawMemory');
+        my $ref1 = func();
+        push(@$ref1, 3, 4, 5);
+        my $ref2 = func();
+        # $ref1 eq $ref2
+        # $ref2 has 3, 4, 5
+
+CAVEATS
+    The caveats of Memoize apply here as well. To summarize:
+
+    *   Do not memoize a function whose behavior depends on program state
+        other than its own arguments, unless you explicitly capture that
+        state in your computed key.
+
+    *   Do not memoize a function with side effects, as the side effects
+        won't happen on a cache hit.
+
+    *   Do not memoize a very simple function, as the costs of caching will
+        outweigh the costs of the function itself.
 
 RELATED MODULES
     A number of modules address a subset of the problems addressed by this

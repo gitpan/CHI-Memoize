@@ -25,4 +25,4 @@ requires:
 resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI-Memoize
   repository: git://github.com/jonswar/perl-chi-memoize.git
-version: 0.01
+version: 0.02
