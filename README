@@ -2,7 +2,7 @@ NAME
     CHI::Memoize - Make functions faster with memoization, via CHI
 
 VERSION
-    version 0.02
+    version 0.03
 
 SYNOPSIS
         use CHI::Memoize qw(:all);
@@ -214,6 +214,9 @@ CAVEATS
 
     *   Do not memoize a very simple function, as the costs of caching will
         outweigh the costs of the function itself.
+
+KNOWN BUGS
+    *   Memoizing a function will affect its call stack and its prototype.
 
 RELATED MODULES
     A number of modules address a subset of the problems addressed by this

@@ -1,6 +1,6 @@
 package CHI::Memoize::t::Memoize;
 BEGIN {
-  $CHI::Memoize::t::Memoize::VERSION = '0.02';
+  $CHI::Memoize::t::Memoize::VERSION = '0.03';
 }
 use Test::Class::Most parent => 'Test::Class';
 use File::Temp qw(tempdir);
@@ -9,7 +9,7 @@ use CHI::Memoize qw(memoize memoized unmemoize NO_MEMOIZE);
 my $unique_id = 0;
 sub unique_id { ++$unique_id }
 
-sub func { unique_id() }
+sub func { join( ",", unique_id(), @_ ) }
 
 # memoize('func');
 #
@@ -26,6 +26,9 @@ sub test_basic : Tests {
     is( $info->orig,                $orig );
     is( $info->wrapper,             \&func );
 
+    cmp_deeply( func(), re(qr/\d+/), 'no args' );
+    cmp_deeply( func( 'a', 'b' ), re(qr/\d+,a,b/), 'two args' );
+
     unmemoize('func');
     isnt( func(), func(), "different values" );
     ok( !memoized('func'), 'not memoized' );
@@ -34,6 +37,7 @@ sub test_basic : Tests {
 
 # memoize('Some::Package::func');
 #
+
 sub test_full_name : Tests {
     my $full_name = join( "::", __PACKAGE__, 'func' );
     my $orig = \&func;
@@ -89,7 +93,8 @@ sub test_undef_or_empty_key : Tests {
     memoize( 'func', key => sub { defined( $_[0] ) && $_[0] eq 'nocache' ? NO_MEMOIZE : @_ } );
     is( func(),      func(),      "no args" );
     is( func('foo'), func('foo'), "regular arg" );
-    isnt( func('nocache'), func('nocache'), "nocache" );
+    isnt( func( 'nocache', 'a', 'b' ), func( 'nocache', 'a', 'b' ), "nocache" );
+    cmp_deeply( func( 'nocache', 'a', 'b' ), re(qr/\d+,nocache,a,b/), 'two args' );
     unmemoize('func');
 }
 
