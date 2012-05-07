@@ -25,7 +25,7 @@ my %WriteMakefileArgs = (
     'CHI' => '0.47',
     'Hash::MoreUtils' => '0'
   },
-  'VERSION' => '0.03',
+  'VERSION' => '0.04',
   'test' => {
     'TESTS' => 't/*.t'
   }

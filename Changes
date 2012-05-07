@@ -2,6 +2,12 @@ Revision history for CHI-Memoize
 
 ** denotes an incompatible change
 
+0.04  May 6, 2012
+
+* Documentation
+  - Correct example demonstrating JSON key serialization, and add test to match - RT 77027
+    (Daniel B. Boorstein)
+
 0.03  May 6, 2012
 
 * Documentation

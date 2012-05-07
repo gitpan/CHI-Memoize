@@ -1,6 +1,6 @@
 package CHI::Memoize::Info;
 BEGIN {
-  $CHI::Memoize::Info::VERSION = '0.03';
+  $CHI::Memoize::Info::VERSION = '0.04';
 }
 use Moose;
 use strict;
@@ -20,7 +20,7 @@ CHI::Memoize::Info - Information about a memoized function
 
 =head1 VERSION
 
-version 0.03
+version 0.04
 
 =head1 SYNOPSIS
 

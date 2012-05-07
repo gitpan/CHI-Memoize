@@ -1,6 +1,6 @@
 package CHI::Memoize::t::Memoize;
 BEGIN {
-  $CHI::Memoize::t::Memoize::VERSION = '0.03';
+  $CHI::Memoize::t::Memoize::VERSION = '0.04';
 }
 use Test::Class::Most parent => 'Test::Class';
 use File::Temp qw(tempdir);
@@ -84,6 +84,30 @@ sub test_dynamic_key : Tests {
     my @keys   = $info->cache->get_keys;
     my $prefix = join( ",", map { qq{"$_"} } ( $info->key_prefix, 'S' ) );
     cmp_deeply( \@keys, bag( "[$prefix,null,null]", "[$prefix,2,4]", "[$prefix,2,3]" ) );
+    unmemoize('func');
+}
+
+# memoized_function({a => 5, b => 6, c => { d => 7, e => 8 }});
+# memoized_function({b => 6, c => { e => 8, d => 7 }, a => 5});
+# memoize('func', key => sub { %@_ });
+#
+sub test_normalization : Tests {
+    memoize('func');
+    is(
+        func( { a => 5, b => 6, c => { d => 7, e => 8 } } ),
+        func( { b => 6, c => { e => 8, d => 7 }, a => 5 } )
+    );
+    isnt(
+        func( a => 5, b => 6, c => { d => 7, e => 8 } ),
+        func( b => 6, c => { e => 8, d => 7 }, a => 5 )
+    );
+    unmemoize('func');
+
+    memoize( 'func', key => sub { return {@_} } );
+    is(
+        func( a => 5, b => 6, c => { d => 7, e => 8 } ),
+        func( b => 6, c => { e => 8, d => 7 }, a => 5 )
+    );
     unmemoize('func');
 }
 
