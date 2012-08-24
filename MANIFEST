@@ -9,3 +9,4 @@ lib/CHI/Memoize.pm
 lib/CHI/Memoize/Info.pm
 lib/CHI/Memoize/t/Memoize.pm
 t/Memoize.t
+tidyall.ini

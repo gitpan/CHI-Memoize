@@ -2,7 +2,7 @@ NAME
     CHI::Memoize - Make functions faster with memoization, via CHI
 
 VERSION
-    version 0.04
+    version 0.05
 
 SYNOPSIS
         use CHI::Memoize qw(:all);
@@ -10,40 +10,16 @@ SYNOPSIS
         # Straight memoization in memory
         memoize('func');
         memoize('Some::Package::func');
-    
-        # Memoize an anonymous function
-        $anon = memoize($anon);
-    
-        # Memoize based on the second and third argument to func
-        memoize('func', key => sub { $_[1], $_[2] });
-    
-        # Memoize only in certain cases
-        memoize('func', key => sub { $_[0] eq 'variable' ? NO_MEMOIZE : @_ });
-    
+
+        # Memoize to a file or to memcached
+        memoize( 'func', driver => 'File', root_dir => '/path/to/cache' );
+        memoize( 'func', driver => 'Memcached', servers => ["127.0.0.1:11211"] );
+
         # Expire after one hour
         memoize('func', expires_in => '1h');
     
-        # Store a maximum of 10 results with LRU discard
-        memoize('func', max_size => 10);
-    
-        # Store raw references instead of serializing/deserializing (faster, more risky)
-        memoize('func', driver => 'RawMemory');
-    
-        # Store in memcached instead of memory
-        memoize('func', driver => 'Memcached', servers => ["127.0.0.1:11211"]);
-    
-        # See what's been memoized for a function
-        my @keys = memoized('func')->cache->get_keys;
-    
-        # Clear memoize results for a function
-        my @keys = memoized('func')->cache->clear;
-    
-        # Use an explicit cache instead of autocreating one
-        my $cache = CHI->new(driver => 'Memcached', servers => ["127.0.0.1:11211"]);
-        memoize('func', cache => $cache);
-    
-        # Unmemoize function, restoring it to its original state
-        unmemoize('func');
+        # Memoize based on the second and third argument to func
+        memoize('func', key => sub { $_[1], $_[2] });
 
 DESCRIPTION
     "`Memoizing' a function makes it faster by trading space for time. It
@@ -52,6 +28,10 @@ DESCRIPTION
     and gives you the value out of the table, instead of letting the
     function compute the value all over again." -- quoted from the original
     Memoize
+
+    For a bit of history and motivation, see
+
+        http://www.openswartz.com/2012/05/06/memoize-revisiting-a-twelve-year-old-api/
 
     `CHI::Memoize' provides the same facility as Memoize, but backed by CHI.
     This means, among other things, that you can
@@ -77,6 +57,13 @@ DESCRIPTION
         an anonymous function. In the former case, the name is rebound to
         the new function. In either case a code ref to the new wrapper
         function is returned.
+
+            # Memoize a named function
+            memoize('func');
+            memoize('Some::Package::func');
+
+            # Memoize an anonymous function
+            $anon = memoize($anon);
 
         By default, the cache key is formed from combining the full function
         name, the calling context ("L" or "S"), and all the function
@@ -117,6 +104,10 @@ DESCRIPTION
         unmemoized state. Also clears the memoize cache if possible (not
         supported by all drivers, particularly memcached). Throws an error
         if *$func* has not been memoized.
+
+            memoize('Some::Package::func');
+            ...
+            unmemoize('Some::Package::func');
 
   OPTIONS
     The following options can be passed to memoize.
@@ -162,6 +153,9 @@ DESCRIPTION
         Any remaining options will be passed to the CHI constructor to
         generate the cache:
 
+            # Store in file instead of memory
+            memoize( 'func', driver => 'File', root_dir => '/path/to/cache' );
+
             # Store in memcached instead of memory
             memoize('func', driver => 'Memcached', servers => ["127.0.0.1:11211"]);
 
@@ -176,7 +170,7 @@ DESCRIPTION
 
 CLONED VS RAW REFERENCES
     By default `CHI', and thus `CHI::Memoize', returns a deep clone of the
-    stored value. e.g. in this code
+    stored value *even* when caching in memory. e.g. in this code
 
         # func returns a list reference
         memoize('func');

@@ -1,6 +1,6 @@
 package CHI::Memoize::t::Memoize;
 BEGIN {
-  $CHI::Memoize::t::Memoize::VERSION = '0.04';
+  $CHI::Memoize::t::Memoize::VERSION = '0.05';
 }
 use Test::Class::Most parent => 'Test::Class';
 use File::Temp qw(tempdir);
