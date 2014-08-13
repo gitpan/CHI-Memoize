@@ -1,5 +1,5 @@
 package CHI::Memoize;
-$CHI::Memoize::VERSION = '0.06';
+$CHI::Memoize::VERSION = '0.07';
 use Carp;
 use CHI;
 use CHI::Memoize::Info;
@@ -119,7 +119,7 @@ CHI::Memoize - Make functions faster with memoization, via CHI
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head1 SYNOPSIS
 
@@ -183,7 +183,7 @@ Memoize qw(:all)> will import them all as well as the C<NO_MEMOIZE> constant.
 
 =over
 
-=item memoize ($func, option =E<gt> value, ...)
+=item memoize ($func, %options)
 
 Creates a new function wrapped around I<$func> that caches results based on
 passed arguments.
@@ -217,6 +217,8 @@ function name or the stringified code reference.  This allows you to introspect
 and clear the memoized results for a particular function.
 
 C<memoize> throws an error if I<$func> is already memoized.
+
+See L<OPTIONS> below for what can go in the options hash.
 
 =item memoized ($func)
 

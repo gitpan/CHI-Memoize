@@ -2,7 +2,7 @@ NAME
     CHI::Memoize - Make functions faster with memoization, via CHI
 
 VERSION
-    version 0.06
+    version 0.07
 
 SYNOPSIS
         use CHI::Memoize qw(:all);
@@ -49,7 +49,7 @@ DESCRIPTION
     Memoize qw(:all)' will import them all as well as the `NO_MEMOIZE'
     constant.
 
-    memoize ($func, option => value, ...)
+    memoize ($func, %options)
         Creates a new function wrapped around *$func* that caches results
         based on passed arguments.
 
@@ -84,6 +84,8 @@ DESCRIPTION
         introspect and clear the memoized results for a particular function.
 
         `memoize' throws an error if *$func* is already memoized.
+
+        See OPTIONS below for what can go in the options hash.
 
     memoized ($func)
         Returns a CHI::Memoize::Info object if *$func* has been memoized, or

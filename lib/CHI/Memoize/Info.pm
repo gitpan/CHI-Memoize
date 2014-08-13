@@ -1,5 +1,5 @@
 package CHI::Memoize::Info;
-$CHI::Memoize::Info::VERSION = '0.06';
+$CHI::Memoize::Info::VERSION = '0.07';
 use Moo;
 use strict;
 use warnings;
@@ -18,7 +18,7 @@ CHI::Memoize::Info - Information about a memoized function
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head1 SYNOPSIS
 

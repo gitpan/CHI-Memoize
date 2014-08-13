@@ -1,5 +1,5 @@
 package CHI::Memoize::t::Memoize;
-$CHI::Memoize::t::Memoize::VERSION = '0.06';
+$CHI::Memoize::t::Memoize::VERSION = '0.07';
 use Test::Class::Most parent => 'Test::Class';
 use File::Temp qw(tempdir);
 use CHI::Memoize qw(memoize memoized unmemoize NO_MEMOIZE);
