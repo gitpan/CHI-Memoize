@@ -1,7 +1,5 @@
 package CHI::Memoize;
-BEGIN {
-  $CHI::Memoize::VERSION = '0.05';
-}
+$CHI::Memoize::VERSION = '0.06';
 use Carp;
 use CHI;
 use CHI::Memoize::Info;
@@ -111,7 +109,7 @@ sub _parse_func_arg {
 
 1;
 
-
+__END__
 
 =pod
 
@@ -121,7 +119,7 @@ CHI::Memoize - Make functions faster with memoization, via CHI
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 
@@ -443,7 +441,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
-
-__END__
-

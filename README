@@ -2,7 +2,7 @@ NAME
     CHI::Memoize - Make functions faster with memoization, via CHI
 
 VERSION
-    version 0.05
+    version 0.06
 
 SYNOPSIS
         use CHI::Memoize qw(:all);

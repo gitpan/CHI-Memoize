@@ -1,8 +1,6 @@
 package CHI::Memoize::Info;
-BEGIN {
-  $CHI::Memoize::Info::VERSION = '0.05';
-}
-use Moose;
+$CHI::Memoize::Info::VERSION = '0.06';
+use Moo;
 use strict;
 use warnings;
 
@@ -10,7 +8,7 @@ has [ 'orig', 'wrapper', 'cache', 'key_prefix' ] => ( is => 'ro' );
 
 1;
 
-
+__END__
 
 =pod
 
@@ -20,7 +18,7 @@ CHI::Memoize::Info - Information about a memoized function
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 
@@ -71,7 +69,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
-
-__END__
-
